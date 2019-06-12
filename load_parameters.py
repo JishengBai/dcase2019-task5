@@ -31,7 +31,6 @@ def load_pars():
         parameter_dict['feature_type'] = 'log_mel'        #   choice = ['log_mel','STFT',HPSS']
         parameter_dict['label_level'] = 'coarse'
         parameter_dict['learning_rate'] = 0.001
-        parameter_dict['momentum'] = 0.9
         parameter_dict['kernel_size'] = 3   
         parameter_dict['layer_depth'] = [64,128,256,512]          #   [ , , , , ]
         parameter_dict['max_ckpt'] = 20
@@ -39,16 +38,15 @@ def load_pars():
         parameter_dict['batch_size'] = 32
         parameter_dict['snapshot'] = 3
         
-        parameter_dict['model_path'] = '/home/dcase/c2019/BJS/task5_code/exp_model/test_exp3/CNN5_stft' 
-        parameter_dict['train_audio_path'] = '/home/dcase/c2019/dataset/task5/audio/train'
-        parameter_dict['val_audio_path'] = '/home/dcase/c2019/dataset/task5/audio/validate'
-        parameter_dict['train_label_csv_path'] = '/home/dcase/c2019/dataset/task5/train_'+parameter_dict['label_level']+'_labels_1.csv'
-        parameter_dict['val_label_csv_path'] = '/home/dcase/c2019/dataset/task5/val_'+parameter_dict['label_level']+'_labels_1.csv'
+        parameter_dict['model_path'] = '~/' 
+        parameter_dict['train_audio_path'] = '~/audio/train'
+        parameter_dict['val_audio_path'] = '~/audio/validate'
+        parameter_dict['train_label_csv_path'] = '~'+parameter_dict['label_level']+'_labels_1.csv'
+        parameter_dict['val_label_csv_path'] = '~'+parameter_dict['label_level']+'_labels_1.csv'
         parameter_dict['submission_path'] = os.path.join(parameter_dict['model_path'],'pre_0.csv')
-        parameter_dict['annotation_path'] = '/home/dcase/c2019/dataset/task5/annotations.csv'
-        parameter_dict['yaml_path'] = '/home/dcase/c2019/dataset/task5/dcase-ust-taxonomy.yaml'
-        parameter_dict['noise_path'] = '/home/dcase/c2019/dataset/task5/audio/train_classes/9_noise_presence'
-        parameter_dict['goal_path'] = '/home/dcase/c2019/dataset/task5/audio/train_classes'
+        parameter_dict['annotation_path'] = '~/annotations.csv'
+        parameter_dict['yaml_path'] = '~/dcase-ust-taxonomy.yaml'
+
         
         if not os.path.exists(parameter_dict['model_path']):
             os.makedirs(parameter_dict['model_path'])
