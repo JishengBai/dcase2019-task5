@@ -46,15 +46,10 @@ def train_main(parameter_dict):
     noise_path = parameter_dict['noise_path']
     goal_path = parameter_dict['goal_path']
     labels_level = parameter_dict['label_level']
-    
-    hpss_coarse_labels = ['6_music']
-    stft_coarse_labels = ['1_engine', '4_powered-saw']
-    mfcc_coarse_labels = ['8_dog']
-    logmel_coarse_labels = ['2_machinery-impact', '3_non-machinery-impact','5_alert-signal', '7_human-voice']
-    
-#    label =eval(labels_level+'_labels')
-    label = hpss_coarse_labels
-    classes_num = len(hpss_coarse_labels)
+        
+    label =eval(labels_level+'_labels')
+
+    classes_num = len(label)
     
     ###     net type
     if net=='CNN':
@@ -69,23 +64,14 @@ def train_main(parameter_dict):
         
     ###     load train data  
     train_label_csv = pd.read_csv(train_label_csv_path)  
-
 #    train_audio_data,train_label = get_train_audiodata(train_label_csv,train_audio_path)
-    
-    ###     data augmentation    
-#    class_label_list = list(train_label_csv)[1:]
-#    divid_audio_data,divid_label = divid_data(train_audio_data,train_label)
-#    divid_audio_data,divid_label = data_augmentation(divid_audio_data,divid_label,noise_path,class_label_list,goal_path)
-#    train_audio_data = np.concatenate((train_audio_data,divid_audio_data),axis=0)
-#    train_label = np.concatenate((train_label,divid_label),axis=0)
-    ###
-    
 #    train_data = get_train_data(train_audio_data,feature)
     train_data = np.load('/home/dcase/c2019/CC/task5_code/dataset_npy/data_16000/hpss/train_hpss_h.npy')
     train_label = np.asarray(train_label_csv)[:,1:].astype(np.float32)
     train_label = train_label[:,5]
     print(train_data.shape)  #batch,bin,frame
     frames,bins = train_data[0].shape
+    
     ###     load val data
     val_label_csv = pd.read_csv(val_label_csv_path)
     val_label = np.asarray(val_label_csv)[:,1:].astype(np.float32)
@@ -117,7 +103,6 @@ def train_main(parameter_dict):
     is_training = tf.placeholder(tf.bool,shape=None,name='is_training')
     
     ###     net output
-#    train_net(kernel_size,layer_depth,classes_num)
     output = train_net.forward(input_tensor=x,is_training=is_training)
     loss = calculate_loss(logits=output,labels=y,label_model='n-hot')
     sigmoid = tf.nn.sigmoid(output,name='sigmoid')
@@ -126,8 +111,8 @@ def train_main(parameter_dict):
     learning_rate = tf.Variable(float(lr), trainable=False, dtype=tf.float32)
     learning_rate_decay_op = learning_rate.assign(learning_rate * 0.9)
     with tf.control_dependencies(update_ops):        
-#        train_op = tf.train.MomentumOptimizer(learning_rate=lr,momentum=momentum).minimize(loss)
         train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss) 
+        
     ###     start session
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -136,10 +121,8 @@ def train_main(parameter_dict):
     sess.run(tf.global_variables_initializer())
     
     ###     tensorboard summary
-
     train_summary_dir = os.path.join(model_path, 'summaries', 'train')
     train_summary_writer = tf.summary.FileWriter(train_summary_dir,sess.graph)   
-    
     loss_all=tf.placeholder(tf.float32,shape=None,name='loss_all')
     acc_all=tf.placeholder(tf.float32,shape=None,name='acc_all')
     tf.add_to_collection("loss", loss_all)
@@ -177,6 +160,7 @@ def train_main(parameter_dict):
         print("step %d" %(epoch))
         print("   train loss: %f" % (train_loss))
         print("   train acc: %f" % (train_acc))
+        
         ###     val
         pre=[]
         if ((epoch+1) % snapshot == 0 and epoch > 0) or epoch == n_epoch-1:
@@ -190,34 +174,25 @@ def train_main(parameter_dict):
                 pre.extend(sigmoid_prediction)
             y_true = np.asarray(val_label,dtype=np.float32)
             y_pre = np.asarray(pre,dtype = np.float32)
-            mean_auprc = 0
-            for i in range(len(label)):
-               precision,recall,thresholds = precision_recall_curve(
-                       y_true[:,i],y_pre[:,i])
-               auprc = auc(recall,precision)
-               if auprc>=0 and auprc<=1:
-                   mean_auprc+=auprc
-               print(label[i],'auprc_score:',auprc)
-            print('mean_auprc:',mean_auprc/classes_num)
-#            write_pre_csv(val_namelist,pre,labels_level,submission_path,fine_labels,coarse_labels)
-#            df_dict = metrics.evaluate(prediction_path=submission_path,annotation_path=annotation_path,
-#                                      yaml_path=yaml_path,mode=labels_level)  
-#            val_micro_auprc,eval_df = metrics.micro_averaged_auprc(df_dict,return_df=True) 
-#            val_macro_auprc,class_auprc = metrics.macro_averaged_auprc(df_dict,return_classwise=True)
-#            thresh_idx_05 = (eval_df['threshold']>=0.5).nonzero()[0][0]
-#            val_micro_F1score = eval_df['F'][thresh_idx_05]
-#    
-#            val_summaries = sess.run(val_summary_op,feed_dict={val_summary:val_micro_auprc})
-#            val_micro_auprc_summary_writer.add_summary(val_summaries, epoch)
+            write_pre_csv(val_namelist,pre,labels_level,submission_path,fine_labels,coarse_labels)
+            df_dict = metrics.evaluate(prediction_path=submission_path,annotation_path=annotation_path,
+                                      yaml_path=yaml_path,mode=labels_level)  
+            val_micro_auprc,eval_df = metrics.micro_averaged_auprc(df_dict,return_df=True) 
+            val_macro_auprc,class_auprc = metrics.macro_averaged_auprc(df_dict,return_classwise=True)
+            thresh_idx_05 = (eval_df['threshold']>=0.5).nonzero()[0][0]
+            val_micro_F1score = eval_df['F'][thresh_idx_05]
+    
+            val_summaries = sess.run(val_summary_op,feed_dict={val_summary:val_micro_auprc})
+            val_micro_auprc_summary_writer.add_summary(val_summaries, epoch)
             val_summaries = sess.run(val_summary_op,feed_dict={val_summary:mean_auprc/classes_num})
             val_macro_auprc_summary_writer.add_summary(val_summaries, epoch)
-#            val_summaries = sess.run(val_summary_op,feed_dict={val_summary:val_micro_F1score})
-#            val_val_micro_F1score_summary_writer.add_summary(val_summaries, epoch)
-#            class_auprc_dict['class_auprc_'+str(epoch)] = class_auprc
-#            print('official')
-#            print('micro',val_micro_auprc)
-#            print('micro_F1',val_micro_F1score)
-#            print('macro',val_macro_auprc)
+            val_summaries = sess.run(val_summary_op,feed_dict={val_summary:val_micro_F1score})
+            val_val_micro_F1score_summary_writer.add_summary(val_summaries, epoch)
+            class_auprc_dict['class_auprc_'+str(epoch)] = class_auprc
+            print('official')
+            print('micro',val_micro_auprc)
+            print('micro_F1',val_micro_F1score)
+            print('macro',val_macro_auprc)
         
             print('-----save:{}-{}'.format(os.path.join(model_path,'ckeckpoint','model'), epoch))
             saver.save(sess, os.path.join(model_path,'ckeckpoint','model'), global_step=epoch)
