@@ -6,13 +6,13 @@ Created on Thu Apr 18 11:29:44 2019
 @author: dcase
 """
 import tensorflow as tf
-from models import CNN_train,CRNN_train,CNN9_train,CNN9_gated_train
+from models import CNN_train,CNN9_train,CNN9_gated_train
 import numpy as np
 import metrics
 import os
 import pandas as pd
 from load_parameters import load_pars
-from data_generator import get_train_audiodata,get_train_data,divid_data,data_augmentation
+from data_generator import get_train_audiodata,get_train_data
 from functions import calculate_loss,get_accuracy,get_batch,get_val_batch,write_pre_csv,shuffle_data
 from functions import calculate_scalar_of_tensor,scale
 from sklearn.metrics import precision_recall_curve,auc
@@ -25,12 +25,11 @@ def train_main(parameter_dict):
 
     net= parameter_dict['net_type']
     feature = parameter_dict['feature_type']
-    train_audio_path = parameter_dict['train_audio_path']
-    val_audio_path = parameter_dict['val_audio_path']
+    train_data_path = parameter_dict['train_data_path']
+    val_data_path = parameter_dict['val_data_path']
     train_label_csv_path = parameter_dict['train_label_csv_path']
     val_label_csv_path = parameter_dict['val_label_csv_path']
-    lr = parameter_dict['learning_rate']      
-    momentum = parameter_dict['momentum'] 
+    lr = parameter_dict['learning_rate']       
     model_path = parameter_dict['model_path']
     max_ckpt = parameter_dict['max_ckpt']
     n_epoch = parameter_dict['n_epoch']
@@ -43,19 +42,14 @@ def train_main(parameter_dict):
     coarse_labels = parameter_dict['coarse_labels']
     kernel_size = parameter_dict['kernel_size']
     layer_depth = parameter_dict['layer_depth']
-    noise_path = parameter_dict['noise_path']
-    goal_path = parameter_dict['goal_path']
     labels_level = parameter_dict['label_level']
         
-    label =eval(labels_level+'_labels')
-
+    label = eval(labels_level+'_labels')
     classes_num = len(label)
     
     ###     net type
     if net=='CNN':
         train_net = CNN_train(kernel_size,layer_depth,classes_num)
-    if net=='CRNN':
-        train_net = CRNN_train(kernel_size,layer_depth,classes_num)
     if net=='CNN9':
         train_net = CNN9_train(kernel_size,layer_depth,classes_num)
     if net=='CNN9_gated':
@@ -64,36 +58,17 @@ def train_main(parameter_dict):
         
     ###     load train data  
     train_label_csv = pd.read_csv(train_label_csv_path)  
-#    train_audio_data,train_label = get_train_audiodata(train_label_csv,train_audio_path)
-#    train_data = get_train_data(train_audio_data,feature)
-    train_data = np.load('/home/dcase/c2019/CC/task5_code/dataset_npy/data_16000/hpss/train_hpss_h.npy')
+    train_data = np.load(os.path.join(train_data_path,feature+'.npy')
     train_label = np.asarray(train_label_csv)[:,1:].astype(np.float32)
-    train_label = train_label[:,5]
     print(train_data.shape)  #batch,bin,frame
     frames,bins = train_data[0].shape
     
     ###     load val data
     val_label_csv = pd.read_csv(val_label_csv_path)
     val_label = np.asarray(val_label_csv)[:,1:].astype(np.float32)
-    val_label = val_label[:,5]
     val_namelist = list(val_label_csv['audio_filename'])
-    val_data = np.load('/home/dcase/c2019/CC/task5_code/dataset_npy/data_16000/hpss/val_hpss_h.npy')
-    all_data = np.concatenate((train_data,val_data),axis=0)
-    print(len(all_data))
-    all_label = np.concatenate((train_label,val_label),axis=0)
-    all_data,all_label = shuffle_data(all_data,all_label)
-    cut_num = int(0.96*all_data.shape[0])
-#    train_data = all_data[:cut_num,:]
-    train_data = all_data
-    print(len(train_data))
-#    train_label = all_label[:cut_num,:]
-    train_label = all_label
-    val_data = all_data[cut_num:,:]
-    print(len(val_data))
-#    val_label = all_label[cut_num:,:]
-    val_label = all_label[cut_num:]
-    
-    
+    val_data = np.load(val_data_path,feature+'.npy')
+
     ### calculate mean std
     (mean_train, std_train) = calculate_scalar_of_tensor(np.concatenate(train_data,axis=0))
     
@@ -189,6 +164,7 @@ def train_main(parameter_dict):
             val_summaries = sess.run(val_summary_op,feed_dict={val_summary:val_micro_F1score})
             val_val_micro_F1score_summary_writer.add_summary(val_summaries, epoch)
             class_auprc_dict['class_auprc_'+str(epoch)] = class_auprc
+            np.save(os.path.join(model_path,'class_auprc_dict.npy'),class_auprc_dict)
             print('official')
             print('micro',val_micro_auprc)
             print('micro_F1',val_micro_F1score)
@@ -197,11 +173,11 @@ def train_main(parameter_dict):
             print('-----save:{}-{}'.format(os.path.join(model_path,'ckeckpoint','model'), epoch))
             saver.save(sess, os.path.join(model_path,'ckeckpoint','model'), global_step=epoch)
             
-            mean_auprc_list.append(mean_auprc/classes_num)
+            mean_auprc_list.append(val_macro_auprc)
             if epoch>40 and mean_auprc_list[-1]<=mean_auprc_list[-2] and mean_auprc_list[-1]<=mean_auprc_list[-3]:
                 sess.close()
                 os._exit(0)
-#    np.save(os.path.join(model_path,'class_auprc_dict.npy'),class_auprc_dict)
+    
     
         
    
