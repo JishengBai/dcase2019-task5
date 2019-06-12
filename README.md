@@ -11,14 +11,23 @@ train_test_model.py:train model
 
 ## Run
 **0. Installation** 
+
 Python 3 + tensorflow 1.13 + librosa
+
 **1. download data** 
+
 download development dataset and unzip
+
 **2. generate features**
+
 ~/dcase2019-task$ python3 data_generator.py
+
 **3. setup parameters**
+
 revise the parameters in load_parameters.py
+
 **4. train model**
+
 ~/dcase2019-task$ python3 train_test_model.py
 
 ## Results
