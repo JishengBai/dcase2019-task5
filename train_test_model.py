@@ -59,7 +59,7 @@ def train_main(parameter_dict):
     train_label_csv = pd.read_csv(train_label_csv_path)  
     train_data = np.load(os.path.join(train_data_path,feature+'.npy')
     train_label = np.asarray(train_label_csv)[:,1:].astype(np.float32)
-    print(train_data.shape)  #batch,bin,frame
+    print("train data shape: ", train_data.shape)  
     frames,bins = train_data[0].shape
     
     ###     load val data
