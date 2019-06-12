@@ -12,7 +12,6 @@ import metrics
 import os
 import pandas as pd
 from load_parameters import load_pars
-from data_generator import get_train_audiodata,get_train_data
 from functions import calculate_loss,get_accuracy,get_batch,get_val_batch,write_pre_csv,shuffle_data
 from functions import calculate_scalar_of_tensor,scale
 from sklearn.metrics import precision_recall_curve,auc
