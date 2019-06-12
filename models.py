@@ -101,60 +101,7 @@ class CNN_train(object):
         
         return output
 
-class CNN_gated_train(object):
-    def __init__(self,kernel_size,layer_depth,classes_num):
-        
-        self.kernel_size = kernel_size
-        self.layer_depth = layer_depth
-        self.classes_num = classes_num
-        self.conv_block1 = Conv_gated_block(kernel_size,layer_depth[0])
-        self.conv_block2 = Conv_gated_block(kernel_size,layer_depth[1])
-   
-    def forward(self,input_tensor,is_training):
-        self.input_tensor = input_tensor
-        self.is_training = is_training
-        conv1 = self.conv_block1.forward(self.input_tensor,self.is_training)
-        pool1 = tf.layers.average_pooling2d(conv1,pool_size=2,strides=2,padding='VALID')        
-        conv2 = self.conv_block2.forward(pool1,self.is_training)
-        pool2 = tf.layers.average_pooling2d(conv2,pool_size=1,strides=1,padding='VALID')  
-        
-        pool2 = tf.reduce_mean(pool2,axis=2)
-        pool2 = tf.reduce_max(pool2,axis=1)
-        flatten = tf.layers.flatten(pool2)
-        output = tf.layers.dense(flatten,units=self.classes_num)
-        
-        return output
 
-class CRNN_train(object):    
-    def __init__(self,kernel_size,layer_depth,classes_num):
-        
-        self.kernel_size = kernel_size
-        self.layer_depth = layer_depth
-        self.classes_num = classes_num
-        self.conv_block1 = Conv_block(kernel_size,layer_depth[0])
-        self.conv_block2 = Conv_block(kernel_size,layer_depth[1])
-   
-    def forward(self,input_tensor,is_training):
-        self.input_tensor = input_tensor
-        self.is_training = is_training
-        conv1 = self.conv_block1.forward(self.input_tensor,self.is_training)
-        pool1 = tf.layers.average_pooling2d(conv1,pool_size=2,strides=2,padding='VALID')        
-        conv2 = self.conv_block2.forward(pool1,self.is_training)
-        pool2 = tf.layers.average_pooling2d(conv2,pool_size=1,strides=1,padding='VALID')  
-        
-        reshaped = tf.reshape(pool2,[-1,55*8,self.layer_depth[3]])
-        num_units  = [self.layer_depth[3],512]
-        basic_cells = [tf.nn.rnn_cell.GRUCell(num_units=n) for n in num_units]
-        cells = tf.nn.rnn_cell.MultiRNNCell(basic_cells,  state_is_tuple=True)
-        (outputs,state) = tf.nn.dynamic_rnn(cells, reshaped, sequence_length=None,dtype=tf.float32,time_major=False)
-        reshaped = tf.reshape(outputs,[-1,55,8,512])
-        
-        reshaped = tf.reduce_mean(reshaped,axis=2)
-        reshaped = tf.reduce_max(reshaped,axis=1)
-        flatten = tf.layers.flatten(reshaped)
-        output = tf.layers.dense(flatten,units=self.classes_num)
-        
-        return output
     
 class CNN9_train(object):
     def __init__(self,kernel_size,layer_depth,classes_num):
@@ -185,43 +132,7 @@ class CNN9_train(object):
         output = tf.layers.dense(flatten,units=self.classes_num)
         
         return output    
-    
-class CRNN9_train(object):
-    def __init__(self,kernel_size,layer_depth,classes_num):
-        
-        self.kernel_size = kernel_size
-        self.layer_depth = layer_depth
-        self.classes_num = classes_num
-        self.conv_block1 = Conv_block(kernel_size,layer_depth[0])
-        self.conv_block2 = Conv_block(kernel_size,layer_depth[1])
-        self.conv_block3 = Conv_block(kernel_size,layer_depth[2])
-        self.conv_block4 = Conv_block(kernel_size,layer_depth[3])
-        
-    def forward(self,input_tensor,is_training):
-        self.input_tensor = input_tensor
-        self.is_training = is_training
-        conv1 = self.conv_block1.forward(self.input_tensor,self.is_training)
-        pool1 = tf.layers.average_pooling2d(conv1,pool_size=2,strides=2,padding='VALID')        
-        conv2 = self.conv_block2.forward(pool1,self.is_training)
-        pool2 = tf.layers.average_pooling2d(conv2,pool_size=2,strides=2,padding='VALID')        
-        conv3 = self.conv_block3.forward(pool2,self.is_training)
-        pool3 = tf.layers.average_pooling2d(conv3,pool_size=2,strides=2,padding='VALID')
-        conv4 = self.conv_block4.forward(pool3,self.is_training)
-        pool4 = tf.layers.average_pooling2d(conv4,pool_size=2,strides=2,padding='VALID')
-        
-        reshaped = tf.reshape(relu4,[-1,55*8,self.layer_depth[3]])
-        num_units  = [self.layer_depth[3],512]
-        basic_cells = [tf.nn.rnn_cell.GRUCell(num_units=n) for n in num_units]
-        cells = tf.nn.rnn_cell.MultiRNNCell(basic_cells,  state_is_tuple=True)
-        (outputs,state) = tf.nn.dynamic_rnn(cells, reshaped, sequence_length=None,dtype=tf.float32,time_major=False)
-        reshaped = tf.reshape(outputs,[-1,55,8,512])
-        
-        reshaped = tf.reduce_mean(reshaped,axis=2)
-        reshaped = tf.reduce_max(reshaped,axis=1)
-        flatten = tf.layers.flatten(reshaped)
-        output = tf.layers.dense(flatten,units=self.classes_num)
-        
-        return output 
+
     
 class CNN9_gated_train(object):
     def __init__(self,kernel_size,layer_depth,classes_num):
