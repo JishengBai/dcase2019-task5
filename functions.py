@@ -36,19 +36,6 @@ def shuffle_data(train_data,train_label):
     train_data = train_data[arr]
     train_label = train_label[arr]
     return train_data,train_label
-
-def get_batch_old(train_data,train_label,batch_num):
-    num = train_data.shape[0]
-    arr = np.arange(num)
-    np.random.shuffle(arr)
-    train_data = train_data[arr]
-    train_label = train_label[arr]
-    for index in range(0,len(train_data),batch_num):       
-        if (index+batch_num)<=(len(train_data)):
-            excerpt = slice(index, index + batch_num)
-        else:
-            excerpt = slice(index,len(train_data))
-        yield train_data[excerpt], train_label[excerpt]
         
 def get_batch(train_data,train_label,batch_num):
     for index in range(0,len(train_data),batch_num):       
