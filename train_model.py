@@ -14,7 +14,6 @@ import pandas as pd
 from load_parameters import load_pars
 from functions import calculate_loss,get_accuracy,get_batch,get_val_batch,write_pre_csv,shuffle_data
 from functions import calculate_scalar_of_tensor,scale
-from sklearn.metrics import precision_recall_curve,auc
 
 def train_main(parameter_dict):
     
@@ -146,8 +145,7 @@ def train_main(parameter_dict):
                 prediction=sess.run(output, feed_dict={x: val_data_batch,is_training:False})
                 sigmoid_prediction = sess.run(tf.nn.sigmoid(prediction))
                 pre.extend(sigmoid_prediction)
-            y_true = np.asarray(val_label,dtype=np.float32)
-            y_pre = np.asarray(pre,dtype = np.float32)
+                         
             write_pre_csv(val_namelist,pre,labels_level,submission_path,fine_labels,coarse_labels)
             df_dict = metrics.evaluate(prediction_path=submission_path,annotation_path=annotation_path,
                                       yaml_path=yaml_path,mode=labels_level)  
@@ -164,6 +162,7 @@ def train_main(parameter_dict):
             val_val_micro_F1score_summary_writer.add_summary(val_summaries, epoch)
             class_auprc_dict['class_auprc_'+str(epoch)] = class_auprc
             np.save(os.path.join(model_path,'class_auprc_dict.npy'),class_auprc_dict)
+                         
             print('official')
             print('micro',val_micro_auprc)
             print('micro_F1',val_micro_F1score)
