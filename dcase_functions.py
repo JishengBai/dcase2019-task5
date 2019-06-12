@@ -6,10 +6,7 @@ Created on Wed Dec 19 10:45:13 2018
 """
 from scipy import signal
 import librosa
-import random
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 import os
 from PIL import Image
 
