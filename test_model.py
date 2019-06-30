@@ -70,7 +70,7 @@ saver.restore(sess,tf.train.latest_checkpoint(model_path))
 graph = tf.get_default_graph()
 x = graph.get_tensor_by_name("x:0")
 is_training = graph.get_tensor_by_name("is_training:0")
-sigmoid = graph.get_tensor_by_name("sigmoid:0") ## if net==CNN9_gated , "sigmoid_8:0" is replaced
+sigmoid = graph.get_tensor_by_name("sigmoid:0") ## if net==CNN9_gated , "sigmoid:0" must be replaced by "sigmoid_8:0"
 pre=[]
 for eval_data_batch in get_val_batch(eval_data,batch_size):
         eval_data_batch = scale(eval_data_batch,mean_train,std_train)
