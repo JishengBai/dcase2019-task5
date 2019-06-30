@@ -27,7 +27,7 @@ def get_train_audiodata(train_label_csv,audio_path):
 def get_train_data(train_audio_data,feature):
     train_data=[]
     if feature == 'log_mel':  
-        for i in range(train_data.shape[0]):        
+        for i in range(train_audio_data.shape[0]):        
             stft_matric = librosa.core.stft(train_audio_data[i,:],n_fft=1024,hop_length=500,win_length=1024,window='hann')    
             mel_W = librosa.filters.mel(sr=32000,n_fft=1024,n_mels=64,fmin=50,fmax=14000)
             mel_spec = np.dot(mel_W,np.abs(stft_matric)**2)
